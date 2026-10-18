@@ -1,6 +1,10 @@
 #!/bin/sh
 
-# UUID: from env, else generate once and persist
+# --- Edit these two lines after checking the Network page ---
+PUBLIC_PORT="${PUBLIC_PORT:-443}"     # direct-port mode: put the real port here, e.g. 20541
+SECURITY="${SECURITY:-tls}"          # direct-port mode: use none
+# ------------------------------------------------------------
+
 if [ -z "$UUID" ]; then
   mkdir -p /home/container 2>/dev/null
   UF=/home/container/uuid
@@ -10,16 +14,21 @@ if [ -z "$UUID" ]; then
 fi
 export UUID
 
-export DOMAIN="${DOMAIN:-${RAILWAY_PUBLIC_DOMAIN:-app220.falixsrv.me}}"
+export DOMAIN="${DOMAIN:-${RAILWAY_PUBLIC_DOMAIN:-app222.falixsrv.me}}"
 export PORT="${PORT:-8080}"
 export WS_PATH="${WS_PATH:-/ws}"
 export SUB_PATH="${SUB_PATH:-/sub}"
 NAME="${NAME_PREFIX:-node}"
 
 ENC=$(printf %s "$WS_PATH" | sed 's#/#%2F#g')
-LINK="vless://${UUID}@${DOMAIN}:443?encryption=none&security=tls&sni=${DOMAIN}&type=ws&host=${DOMAIN}&path=${ENC}#${NAME}"
+if [ "$SECURITY" = "tls" ]; then
+  LINK="vless://${UUID}@${DOMAIN}:${PUBLIC_PORT}?encryption=none&security=tls&sni=${DOMAIN}&type=ws&host=${DOMAIN}&path=${ENC}#${NAME}"
+else
+  LINK="vless://${UUID}@${DOMAIN}:${PUBLIC_PORT}?encryption=none&security=none&type=ws&host=${DOMAIN}&path=${ENC}#${NAME}"
+fi
 export SUB_B64=$(printf %s "$LINK" | base64 -w0)
 
+echo "PORT env = $PORT"
 echo "=== LINK ==="
 echo "$LINK"
 echo "============"
