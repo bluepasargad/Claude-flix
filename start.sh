@@ -46,5 +46,4 @@ cat > /tmp/x.json <<EOF
 EOF
 
 xray run -c /tmp/x.json &
-sh ./hy2.sh &
 exec caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
